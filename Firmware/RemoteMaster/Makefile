@@ -161,8 +161,8 @@ LDFLAGS += $(PRINTF_LIB) $(SCANF_LIB) $(MATH_LIB)
 # Type: avrdude -c ?
 # to get a full listing.
 #
-AVRDUDE_PROGRAMMER = usbasp
-#AVRDUDE_PROGRAMMER = avrispmkii
+#AVRDUDE_PROGRAMMER = usbasp
+AVRDUDE_PROGRAMMER = avrispmkii
 # com1 = serial port. Use lpt1 to connect to parallel port.
 AVRDUDE_PORT = usb    # programmer connected to serial device
 
@@ -171,7 +171,7 @@ AVRDUDE_WRITE_FLASH = -U flash:w:$(TARGET).hex -P $(AVRDUDE_PORT)
 # Make sure to select the right fuse settings! USe
 # http://www.engbedded.com/fusecalc
 #AVRDUDE_WRITE_FUSES = -U lfuse:w:0x4e:m -U hfuse:w:0x99:m -U efuse:w:0xfc:m
-AVRDUDE_WRITE_FUSES = -U lfuse:w:0xff:m -U hfuse:w:0xdf:m 
+AVRDUDE_WRITE_FUSES = -U lfuse:w:0xe4:m -U hfuse:w:0xd9:m -P $(AVRDUDE_PORT)
 
 
 # Uncomment the following if you want avrdude's erase cycle counter.
