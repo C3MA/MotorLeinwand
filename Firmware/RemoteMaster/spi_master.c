@@ -45,7 +45,7 @@ void timer1 (void) {
 void master_init (void) {
 	DDRB = (1<<PB0) | (1<<PB3) | (1<<PB5);		// setze SCK,MOSI,PB0 (SS) als Ausgang
 	DDRB &= ~(1<<PB4);							// setze MISO als Eingang
-	PORTB = (1<<PB5) | (1<<PB0);				// SCK und PB0 high (ist mit SS am Slave verbunden)
+	PORTB = (1<<PB5) | (1<<PB2);				// SCK und PB2 high (ist mit SS am Slave verbunden)
 	SPCR = (1<<SPE) | (1<<MSTR) | (1<<SPR0);	//Aktivierung des SPI, Master, Taktrate fck/16
 	status = SPSR;								//Status löschen
 }

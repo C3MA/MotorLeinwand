@@ -14,7 +14,8 @@ Verdrahtung:	MISO(Master) --> MISO(Slave)
 volatile unsigned char data;
 unsigned char status;
 
-SIGNAL (SIG_SPI) {
+/*ISR names found in avr/iom8.h */
+ISR (SPI_STC_vect) {
 	data = SPDR;
 	if (data == '1')	PORTD = 0x00;			//LEDs an
 	if (data == '0')	PORTD = 0xff;			//LEDs aus
