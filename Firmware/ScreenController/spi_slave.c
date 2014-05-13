@@ -10,7 +10,6 @@ Verdrahtung:	MISO(Master) --> MISO(Slave)
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include <avr/signal.h>
 
 volatile unsigned char data;
 unsigned char status;

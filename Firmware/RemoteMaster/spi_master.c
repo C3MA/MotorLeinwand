@@ -10,7 +10,6 @@ Verdrahtung:	MISO(Master) --> MISO(Slave)
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include <avr/signal.h>
 
 unsigned char status = 0;
 volatile unsigned char count;
@@ -19,19 +18,21 @@ void timer1 (void);
 void master_init (void);
 void master_transmit (unsigned char data);
 
-SIGNAL (SIG_SPI) {
+/*ISR names found in avr/iom8.h */
+ISR (SPI_STC_vect) {
 	return;
 }
 
-SIGNAL (SIG_OVERFLOW1) {						//Senderoutine
+/*ISR names found in avr/iom8.h */
+ISR (TIMER1_OVF_vect) {						//Senderoutine
 	if (count == 1) {
 		master_transmit ('1');
 		count--;
-		return;
-	}
-	if (count == 0) {
+		PORTD = 0x0;
+	} else if (count == 0) {
 		master_transmit ('0');
 		count++;
+		PORTD = 0xff;
 	}
 }
 
@@ -57,7 +58,7 @@ void master_transmit (unsigned char data) {
 }
 
 int main (void) {
-
+	DDRD = 0xff;		// PortD als Ausgang nutzen (Chris & Ollo geraten)
 	master_init ();
 	timer1 ();
 	sei ();
