@@ -5,7 +5,7 @@
 # based on WinAVR Makefile Template written by Eric B. Weddington, Jörg Wunsch, et al.
 
 # List C source files here. (C dependencies are automatically generated.)
-SRC = $(TARGET).c lib_dmx_in.c
+SRC = $(TARGET).c
 #Original: SRC = $(TARGET).c uart.c timer.c buzzer.c
 
 
@@ -20,7 +20,7 @@ ASRC =
 
 
 # MCU name
-MCU = attiny2313
+MCU = atmega8
 # Processor frequency.
 #F_CPU = 7372800
 F_CPU = 8000000
@@ -28,7 +28,7 @@ F_CPU = 8000000
 # Output format. (can be srec, ihex, binary)
 FORMAT = ihex
 # Target file name (without extension).
-TARGET = lightbox_dmx
+TARGET = spi_slave.c
 
 
 
