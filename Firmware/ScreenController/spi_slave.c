@@ -55,6 +55,7 @@ ISR (SPI_STC_vect)
 		PORTD &= ~(1<<PIN_MOTORUP);	/* deactivate up */
 		break;
 	case SPI_STOP:
+	default:
 		PORTD &= ~(1<<PIN_MOTORDOWN);	/* deactivate down */
 		PORTD &= ~(1<<PIN_MOTORUP);	/* deactivate up */
 		break;
