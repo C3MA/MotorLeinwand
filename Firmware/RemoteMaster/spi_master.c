@@ -11,10 +11,17 @@ Verdrahtung:	MISO(Master) --> MISO(Slave)
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
+#define PIN_UP		PD0 /* Taster Hoch */
+#define PIN_DOWN	PD1 /* Taster Runter */
+#define PIN_STOP	PD2 /* Taster Stop (INT0) */
+
+#define LED		PD5 /* LED auf Dev Board / Spaeter PC3 */
+
 unsigned char status = 0;
 volatile unsigned char count;
 
-void timer1 (void);
+void int0_init (void);
+//void timer1 (void);
 void master_init (void);
 void master_transmit (unsigned char data);
 
@@ -24,7 +31,7 @@ ISR (SPI_STC_vect) {
 }
 
 /*ISR names found in avr/iom8.h */
-ISR (TIMER1_OVF_vect) {						//Senderoutine
+/*ISR (TIMER1_OVF_vect) {						//Senderoutine
 	if (count == 1) {
 		master_transmit ('D');
 		count--;
@@ -35,14 +42,31 @@ ISR (TIMER1_OVF_vect) {						//Senderoutine
 		PORTD = 0xff;
 	}
 }
-
+*/
+ISR (INT0_vect) {
+	if (count == 1) {
+		master_transmit ('D');
+		count--;
+		PORTD &= ~(1<<LED);
+	} else if (count == 0) {
+		master_transmit ('U');
+		count++;
+		PORTD |= (1<<LED);
+	}
+}
+/*
 void timer1 (void) {
 	TIMSK |= (1<<TOIE1);           				//Timer Overflow Interrupt enable
 	TCNT1 = 0;                					//Rücksetzen des Timers
 	TCCR1B = (1<<CS10) | (1<<CS11);			//8MHz/65536/64 = 1,91Hz --> 0,5s
 }
+*/
+
+
 
 void master_init (void) {
+	DDRD = 0;		// PortD alles Eingang
+	DDRD |= (1<<LED);	// LED als Ausgang (Dev)
 	DDRB = (1<<PB2) | (1<<PB3) | (1<<PB5);		// setze SCK,MOSI,PB2 (SS) als Ausgang
 	DDRB &= ~(1<<PB4);							// setze MISO als Eingang
 	PORTB = (1<<PB5) | (1<<PB2);				// SCK und PB2 high (ist mit SS am Slave verbunden)
@@ -57,10 +81,16 @@ void master_transmit (unsigned char data) {
 	PORTB |= (1<<PB2);							//SS High --> Ende der Übertragung
 }
 
+void int0_init (void) {
+	MCUCR |= (1<<ISC01) | (1<<ISC00);
+	GICR |= (1<<INT0);
+}
+
 int main (void) {
-	DDRD = 0xff;		// PortD als Ausgang nutzen 
+	//DDRD = 0xff;		// PortD als Ausgang nutzen 
 	master_init ();
-	timer1 ();
+	int0_init ();
+//	timer1 ();
 	sei ();
 
 	for (;;);
