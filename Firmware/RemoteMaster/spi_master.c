@@ -11,17 +11,17 @@ Verdrahtung:	MISO(Master) --> MISO(Slave)
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-#define PIN_UP		PD0 /* Taster Hoch */
-#define PIN_DOWN	PD1 /* Taster Runter */
+#define PIN_UP		PD3 /* Taster Hoch */
+#define PIN_DOWN	PD4 /* Taster Runter */
 #define PIN_STOP	PD2 /* Taster Stop (INT0) */
 
 #define LED		PD5 /* LED auf Dev Board / Spaeter PC3 */
 
 unsigned char status = 0;
-volatile unsigned char count;
+volatile unsigned char count = 0;
 
 void int0_init (void);
-//void timer1 (void);
+void timer1 (void);
 void master_init (void);
 void master_transmit (unsigned char data);
 
@@ -31,36 +31,50 @@ ISR (SPI_STC_vect) {
 }
 
 /*ISR names found in avr/iom8.h */
-/*ISR (TIMER1_OVF_vect) {						//Senderoutine
-	if (count == 1) {
-		master_transmit ('D');
-		count--;
-		PORTD = 0x0;
-	} else if (count == 0) {
-		master_transmit ('U');
-		count++;
-		PORTD = 0xff;
+ISR (TIMER1_OVF_vect) {						//Senderoutine
+	if (PIND & (1<<PIN_STOP))
+	{
+		master_transmit ('S');
+	} else if (status == 0) 
+	{
+		status = 1;
+		switch(PIND & ((1<<PIN_UP)|(1<<PIN_DOWN)))
+		{
+		case (1<<PIN_UP):
+			PORTD |= (1<<LED);
+			master_transmit ('U');
+			count = 0;
+			break;
+		case (1<<PIN_DOWN):
+			PORTD |= (1<<LED);
+			master_transmit ('D');
+			count = 0;
+			break;
+		case ((1<<PIN_UP)|(1<<PIN_DOWN)):
+			master_transmit ('S');
+			count = 0;
+			break;
+		default:
+			PORTD &= ~(1<<LED);
+			break;
+		}
+	} else if (status == 1 && (PIND & ((1<<PIN_UP)|(1<<PIN_DOWN))) == 0) {
+		status = 0;
 	}
 }
-*/
+
 ISR (INT0_vect) {
-	if (count == 1) {
-		master_transmit ('D');
-		count--;
-		PORTD &= ~(1<<LED);
-	} else if (count == 0) {
-		master_transmit ('U');
-		count++;
-		PORTD |= (1<<LED);
-	}
+	PORTD |= (1<<LED);
+//	PORTD &= ~(1<<LED);
+	master_transmit ('S');
 }
-/*
+
 void timer1 (void) {
 	TIMSK |= (1<<TOIE1);           				//Timer Overflow Interrupt enable
 	TCNT1 = 0;                					//Rücksetzen des Timers
-	TCCR1B = (1<<CS10) | (1<<CS11);			//8MHz/65536/64 = 1,91Hz --> 0,5s
+	TCCR1B = (1<<CS10);			//8MHz/65536/64 = 1,91Hz --> 0,5s
 }
-*/
+
 
 
 
@@ -87,10 +101,9 @@ void int0_init (void) {
 }
 
 int main (void) {
-	//DDRD = 0xff;		// PortD als Ausgang nutzen 
 	master_init ();
 	int0_init ();
-//	timer1 ();
+	timer1 ();
 	sei ();
 
 	for (;;);
