@@ -16,9 +16,10 @@ Verdrahtung:	MISO(Master) --> MISO(Slave)
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <util/delay.h>
 
-#define PIN_MOTORUP	PD5	/* Motor Up (Use the LED of the evaluation board atm) */
-#define PIN_MOTORDOWN	PD6	/* Motor Down (Use hopefully the other LED on the board) */
+#define PIN_MOTORUP	PC4	/* Motor Up (Use the LED of the evaluation board atm) */
+#define PIN_MOTORDOWN	PC5	/* Motor Down (Use hopefully the other LED on the board) */
 #define PIN_DEBUG_LED	PC3	/* Debug LED */
 
 /* The SPI commands */
@@ -41,11 +42,9 @@ unsigned char status;			/*FIXME old variable from the example */
  */
 ISR (SPI_STC_vect)
 {
+	int i;
 	data = SPDR;
-
 	
-	PORTC |= (1<<PIN_DEBUG_LED);	/* activate LED */
-
 	/* Reset the timer, if the direction was changed */
 	if (lastState != data)
 	{
@@ -55,17 +54,36 @@ ISR (SPI_STC_vect)
 	switch(data)
 	{
 	case SPI_UP:
-		PORTD &= ~(1<<PIN_MOTORDOWN);	/* deactivate down */
-		PORTD |= (1<<PIN_MOTORUP);	/* activate up */
+		PORTC &= ~(1<<PIN_MOTORDOWN);	/* deactivate down */
+		PORTC |= (1<<PIN_MOTORUP);	/* activate up */
+
+		/* generate Blink code */
+		for(i=0; i < 3; i++)
+		{
+			PORTC |= (1<<PIN_DEBUG_LED);	/* activate LED */
+			_delay_ms(600);
+			PORTC &= ~(1<<PIN_DEBUG_LED);	/* deactivate LED */
+			_delay_ms(600);
+		}
+
 		break;
 	case SPI_DOWN:
-		PORTD |= (1<<PIN_MOTORDOWN);	/* activate down */
-		PORTD &= ~(1<<PIN_MOTORUP);	/* deactivate up */
+		PORTC |= (1<<PIN_MOTORDOWN);	/* activate down */
+		PORTC &= ~(1<<PIN_MOTORUP);	/* deactivate up */
+
+		/* generate Blink code */
+		for(i=0; i < 2; i++)
+		{
+			PORTC |= (1<<PIN_DEBUG_LED);	/* activate LED */
+			_delay_ms(200);
+			PORTC &= ~(1<<PIN_DEBUG_LED);	/* deactivate LED */
+			_delay_ms(200);
+		}
 		break;
 	case SPI_STOP:
 	default:
-		PORTD &= ~(1<<PIN_MOTORDOWN);	/* deactivate down */
-		PORTD &= ~(1<<PIN_MOTORUP);	/* deactivate up */
+		PORTC &= ~(1<<PIN_MOTORDOWN);	/* deactivate down */
+		PORTC &= ~(1<<PIN_MOTORUP);	/* deactivate up */
 		break;
 	}
 	
@@ -85,8 +103,8 @@ ISR (TIMER1_OVF_vect)
 		/* The motor has rolled out (or up) the complete screen.
 		 * So switch into the "Stop-State"
 		 */
-		PORTD &= ~(1<<PIN_MOTORDOWN);	/* deactivate down */
-		PORTD &= ~(1<<PIN_MOTORUP);	/* deactivate up */
+		PORTC &= ~(1<<PIN_MOTORDOWN);	/* deactivate down */
+		PORTC &= ~(1<<PIN_MOTORUP);	/* deactivate up */
 		
 		/* reset post scaler */
 		postscaler = 0;
@@ -124,15 +142,22 @@ void timer_init (void)
 int main (void)
 {
 	DDRC = 0;
-	DDRD = 0;
+	
 	/* Prepare the necessary PINs as outputs */
-	DDRD |= (1<<PIN_MOTORUP);
-	DDRD |= (1<<PIN_MOTORDOWN);
+	DDRC |= (1<<PIN_MOTORUP);
+	DDRC |= (1<<PIN_MOTORDOWN);
 	DDRC |= (1<<PIN_DEBUG_LED);
 	slave_init ();
 	timer_init();
 	sei ();
 	
-	for (;;);
+	for (;;)
+	{
+		PORTC |= (1<<PIN_DEBUG_LED);	/* activate LED */
+		_delay_ms(50);
+		PORTC &= ~(1<<PIN_DEBUG_LED);	/* deactivate LED */
+		_delay_ms(50);
+	}
+
 	return 0;
 }
