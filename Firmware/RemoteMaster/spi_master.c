@@ -37,8 +37,10 @@ ISR (TIMER1_OVF_vect) {
 	if (PIND & (1<<PIN_STOP))				// Sende S wenn Stop gedrückt wurde
 	{
 		master_transmit ('S');
-	} else if (status == 0) 				// Wenn beim letzten durchlauf der ISR kein Button gedrückt wurde
+	}
+	else if (status == 0) 				// Wenn beim letzten durchlauf der ISR kein Button gedrückt wurde
 	{
+		/* Mask the two buttons 'up'' and 'down' on the register */
 		switch(PIND & ((1<<PIN_UP)|(1<<PIN_DOWN)))	// Prüfen ob Taster hoch oder Runter betätigt wurde
 		{
 		case (1<<PIN_UP):				// Wenn Taster hoch betätigt wurde
@@ -51,7 +53,7 @@ ISR (TIMER1_OVF_vect) {
 			master_transmit ('D');
 			status = 1;					
 			break;
-		case ((1<<PIN_UP)|(1<<PIN_DOWN)):		// Wenn beide Taster betätigt wurden
+		case ((1<<PIN_UP) & (1<<PIN_DOWN)):		// Wenn beide Taster betätigt wurden
 			master_transmit ('S');			// Sende Stop
 			status = 1;					
 			break;
