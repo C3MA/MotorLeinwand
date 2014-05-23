@@ -17,8 +17,8 @@ Verdrahtung:	MISO(Master) --> MISO(Slave)
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-#define PIN_MOTORUP	PC4	/* Motor Up (Use the LED of the evaluation board atm) */
-#define PIN_MOTORDOWN	PC5	/* Motor Down (Use hopefully the other LED on the board) */
+#define PIN_MOTORUP	PD5	/* Motor Up (Use the LED of the evaluation board atm) */
+#define PIN_MOTORDOWN	PD6	/* Motor Down (Use hopefully the other LED on the board) */
 #define PIN_DEBUG_LED	PC3	/* Debug LED */
 
 /* The SPI commands */
@@ -55,17 +55,17 @@ ISR (SPI_STC_vect)
 	switch(data)
 	{
 	case SPI_UP:
-		PORTC &= ~(1<<PIN_MOTORDOWN);	/* deactivate down */
-		PORTC |= (1<<PIN_MOTORUP);	/* activate up */
+		PORTD &= ~(1<<PIN_MOTORDOWN);	/* deactivate down */
+		PORTD |= (1<<PIN_MOTORUP);	/* activate up */
 		break;
 	case SPI_DOWN:
-		PORTC |= (1<<PIN_MOTORDOWN);	/* activate down */
-		PORTC &= ~(1<<PIN_MOTORUP);	/* deactivate up */
+		PORTD |= (1<<PIN_MOTORDOWN);	/* activate down */
+		PORTD &= ~(1<<PIN_MOTORUP);	/* deactivate up */
 		break;
 	case SPI_STOP:
 	default:
-		PORTC &= ~(1<<PIN_MOTORDOWN);	/* deactivate down */
-		PORTC &= ~(1<<PIN_MOTORUP);	/* deactivate up */
+		PORTD &= ~(1<<PIN_MOTORDOWN);	/* deactivate down */
+		PORTD &= ~(1<<PIN_MOTORUP);	/* deactivate up */
 		break;
 	}
 	
@@ -85,8 +85,8 @@ ISR (TIMER1_OVF_vect)
 		/* The motor has rolled out (or up) the complete screen.
 		 * So switch into the "Stop-State"
 		 */
-		PORTC &= ~(1<<PIN_MOTORDOWN);	/* deactivate down */
-		PORTC &= ~(1<<PIN_MOTORUP);	/* deactivate up */
+		PORTD &= ~(1<<PIN_MOTORDOWN);	/* deactivate down */
+		PORTD &= ~(1<<PIN_MOTORUP);	/* deactivate up */
 		
 		/* reset post scaler */
 		postscaler = 0;
@@ -124,9 +124,10 @@ void timer_init (void)
 int main (void)
 {
 	DDRC = 0;
+	DDRD = 0;
 	/* Prepare the necessary PINs as outputs */
-	DDRC |= (1<<PIN_MOTORUP);
-	DDRC |= (1<<PIN_MOTORDOWN);
+	DDRD |= (1<<PIN_MOTORUP);
+	DDRD |= (1<<PIN_MOTORDOWN);
 	DDRC |= (1<<PIN_DEBUG_LED);
 	slave_init ();
 	timer_init();
