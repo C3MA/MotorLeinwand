@@ -75,6 +75,7 @@ ISR (SPI_STC_vect)
  */
 ISR (TIMER1_OVF_vect)
 {
+
 	if (postscaler > POSTSCALER_MAXIMUM)
 	{ 
 		/* The motor has rolled out (or up) the complete screen.
