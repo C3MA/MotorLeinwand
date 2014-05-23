@@ -37,23 +37,22 @@ ISR (TIMER1_OVF_vect) {
 	if (PIND & (1<<PIN_STOP))				// Sende S wenn Stop gedrückt wurde
 	{
 		master_transmit ('S');
-	} else if (status == 0) 				// Wenn beim letzten durchlauf der ISR kein Button gedrückt wurde
+	}
+	else if (status == 0) 				// Wenn beim letzten durchlauf der ISR kein Button gedrückt wurde
 	{
+		status = 1;
 		switch(PIND & ((1<<PIN_UP)|(1<<PIN_DOWN)))	// Prüfen ob Taster hoch oder Runter betätigt wurde
 		{
 		case (1<<PIN_UP):				// Wenn Taster hoch betätigt wurde
 			PORTD |= (1<<LED);			// Aktiviere LED
 			master_transmit ('U');			// Sende U (hoch) an Master
-			status = 1;				// Taster wurde betätigt	
 			break;
 		case (1<<PIN_DOWN):				// Wenn Taster runter betätigt wurde
 			PORTD |= (1<<LED);			// s.o.
 			master_transmit ('D');
-			status = 1;					
 			break;
 		case ((1<<PIN_UP)|(1<<PIN_DOWN)):		// Wenn beide Taster betätigt wurden
 			master_transmit ('S');			// Sende Stop
-			status = 1;					
 			break;
 		default:
 			PORTD &= ~(1<<LED);			// Wenn kein Taster betätigt wurde, deaktiviere LED
