@@ -33,7 +33,9 @@ ISR (SPI_STC_vect) {
 /* 
   ISR für Timer 1, parametriert in timer1()
 */
-ISR (TIMER1_OVF_vect) {	
+ISR (TIMER1_OVF_vect)
+{	
+	unsigned char search;
 	if (PIND & (1<<PIN_STOP))				// Sende S wenn Stop gedrückt wurde
 	{
 		master_transmit ('S');
@@ -41,8 +43,13 @@ ISR (TIMER1_OVF_vect) {
 	else if (status == 0) 				// Wenn beim letzten durchlauf der ISR kein Button gedrückt wurde
 	{
 		status = 1;
-		switch(PIND & ((1<<PIN_UP)|(1<<PIN_DOWN)))	// Prüfen ob Taster hoch oder Runter betätigt wurde
+		/* mask the up and down button from the input */
+		search = (PIND & (1<<PIN_UP)) | (PIND & (1<PIN_DOWN));
+		switch(search)	// Prüfen ob Taster hoch oder Runter betätigt wurde
 		{
+		case ((1<<PIN_UP)&(1<<PIN_DOWN)):		// Wenn beide Taster betätigt wurden
+			master_transmit ('S');			// Sende Stop
+			break;
 		case (1<<PIN_UP):				// Wenn Taster hoch betätigt wurde
 			PORTD |= (1<<LED);			// Aktiviere LED
 			master_transmit ('U');			// Sende U (hoch) an Master
@@ -50,9 +57,6 @@ ISR (TIMER1_OVF_vect) {
 		case (1<<PIN_DOWN):				// Wenn Taster runter betätigt wurde
 			PORTD |= (1<<LED);			// s.o.
 			master_transmit ('D');
-			break;
-		case ((1<<PIN_UP)|(1<<PIN_DOWN)):		// Wenn beide Taster betätigt wurden
-			master_transmit ('S');			// Sende Stop
 			break;
 		default:
 			PORTD &= ~(1<<LED);			// Wenn kein Taster betätigt wurde, deaktiviere LED
@@ -113,7 +117,7 @@ void int0_init (void) {
 
 int main (void) {
 	master_init ();						// Initialisieren
-	int0_init ();						// INT0 (Taster Stop) Initialisieren
+	//int0_init ();						// INT0 (Taster Stop) Initialisieren
 	timer1 ();						// Timer1 Initialisieren
 	sei ();							// Aktiveren des Interrupts
 
