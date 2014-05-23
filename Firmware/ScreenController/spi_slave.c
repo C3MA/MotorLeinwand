@@ -25,8 +25,12 @@ Verdrahtung:	MISO(Master) --> MISO(Slave)
 #define SPI_UP		'U'
 #define SPI_STOP	'S'
 
+
+#define	POSTSCALER_MAXIMUM	11	/**< Maximum, that triggers the timeout */
+
 volatile unsigned char data;		/**< Actual received command via SPI */
 volatile unsigned char lastState = 0;	/**< Last executed command */
+volatile unsigned char postscaler = 0;	/**< Make the timing slower */
 unsigned char status;			/*FIXME old variable from the example */
 
 /** @fn ISR (SPI_STC_vect)
@@ -71,11 +75,21 @@ ISR (SPI_STC_vect)
  */
 ISR (TIMER1_OVF_vect)
 {
-	/* The motor has rolled out (or up) the complete screen.
-	 * So switch into the "Stop-State"
-	 */
-	PORTD &= ~(1<<PIN_MOTORDOWN);	/* deactivate down */
-	PORTD &= ~(1<<PIN_MOTORUP);	/* deactivate up */
+	if (postscaler > POSTSCALER_MAXIMUM)
+	{ 
+		/* The motor has rolled out (or up) the complete screen.
+		 * So switch into the "Stop-State"
+		 */
+		PORTD &= ~(1<<PIN_MOTORDOWN);	/* deactivate down */
+		PORTD &= ~(1<<PIN_MOTORUP);	/* deactivate up */
+		
+		/* reset post scaler */
+		postscaler = 0;
+	}
+	else
+	{
+		postscaler++;
+	}
 }
 
 /** @fn void slave_init (void)
@@ -94,8 +108,9 @@ void timer_init (void)
 {
 	TIMSK |= (1<<TOIE1);		// Timer Overflow Interrupt enable
 	TCNT1 = 0;                	// Rücksetzen des Timers
-	TCCR1B = (1<<CS10) | (1<<CS11);	// 8MHz/65536/64 = 1,91Hz --> 0,5s FIXME this ist TOOO fast
+	TCCR1B = (1<<CS10) | (1<<CS12);	// 8MHz/65536/1024 = 0,11Hz --> 8,38s
 }
+
 
 /** @fn int main (void)
  * @brief main entry point
