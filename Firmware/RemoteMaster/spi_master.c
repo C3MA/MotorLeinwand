@@ -53,10 +53,6 @@ ISR (TIMER1_OVF_vect) {
 			master_transmit ('D');
 			status = 1;					
 			break;
-		case ((1<<PIN_UP) & (1<<PIN_DOWN)):		// Wenn beide Taster betätigt wurden
-			master_transmit ('S');			// Sende Stop
-			status = 1;					
-			break;
 		default:
 			PORTD &= ~(1<<LED);			// Wenn kein Taster betätigt wurde, deaktiviere LED
 			break;
