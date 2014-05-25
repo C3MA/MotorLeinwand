@@ -1,0 +1,19 @@
+digraph Setup {
+
+nodesep=1.2
+node	[shape=record style=filled];
+
+LW 	[ label="<f0> Leinwand Controller | { <spi> SPI | <up> Up | <down> Down }" fillcolor=yellow ];
+Cont	[ label="<f0> Steuerung Controller|{ <up> Up|<down> Down|<stop> Stop| <ip> IP }" ];
+Motor	[ label="Motor" shape=hexagon style=solid];
+Raum	[ label="Raumnetzwerk" shape=oval style=solid];
+
+LW:spi->Cont:f0 [ label="SPI", dir="both" ];
+//Cont:f0->LW:spi;
+LW:up->Motor [ label="Transistor & Relais" ];
+LW:down->Motor [ label="Transistor & Relais" ];
+
+//Cont:ip->Raum:f0 [ label="IP" ];
+Raum->Cont:ip [ label="IP", dir="both" ];
+
+}

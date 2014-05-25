@@ -1,0 +1,18 @@
+digraph MotorContol {
+
+nodesep=1.0
+
+Down	[ label="Down" ]
+Up	[ label="Up" ]
+Stop	[ label="Stop", color=Red ]
+
+// state changes
+Down->Up
+Up->Down
+
+// Secure the transistors
+Up->Stop [label="Timeout" ]
+Down->Stop [label="Timeout" ]
+Stop->Up
+Stop->Down
+}
