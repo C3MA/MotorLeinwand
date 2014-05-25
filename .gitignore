@@ -1,3 +1,4 @@
 tmp/
 *~
+*.swp
 doc/*.png

@@ -1,14 +1,16 @@
 digraph Setup {
 
-nodesep=1.2
+nodesep=0.9
 node	[shape=record style=filled];
 
-LW 	[ label="<f0> Leinwand Controller | { <spi> SPI | <up> Up | <down> Down }" fillcolor=yellow ];
-Cont	[ label="<f0> Steuerung Controller|{ <up> Up|<down> Down|<stop> Stop| <ip> IP }" ];
+LW 	[ label="{ <up> Up | <down> Down } | <f0> Leinwand Controller | { <pin1> Pin Up | <pin2> Pin Down | <pin3> GND } " fillcolor=yellow ];
+Cont	[ label="<ip> IP | <f0> Steuerung Controller|{ <up> Button: Up|<down> Button: Down|<stop> Button: Stop }" ];
 Motor	[ label="Motor" shape=hexagon style=solid];
 Raum	[ label="Raumnetzwerk" shape=oval style=solid];
 
-LW:spi->Cont:f0 [ label="SPI", dir="both" ];
+Cont:f0->LW:pin1 [ label="Pin 1" ];
+Cont:f0->LW:pin2 [ label="Pin 2" ];
+Cont:f0->LW:pin3 [ label="GND" , dir="both" ];
 //Cont:f0->LW:spi;
 LW:up->Motor [ label="Transistor & Relais" ];
 LW:down->Motor [ label="Transistor & Relais" ];
