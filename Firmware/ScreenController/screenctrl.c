@@ -25,7 +25,6 @@
 #define PIN_CTRL_UP	PB5
 #define PIN_CTRL_DOWN	PB4
 #define PIN_CTRL	PINB
-#define	DDCTRL_CTRLPIN	DDRB	/**< Data direction control register of the control pins */
 
 /********** Board layout end ********/
 
