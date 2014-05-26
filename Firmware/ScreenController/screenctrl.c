@@ -57,7 +57,7 @@ void handleState(int pinUp, int pinDown)
 	{
 		data = STATE_DOWN;
 	}
-	else if (pinUp == 0 && pinDown == 0)
+	else if (pinUp == 1 && pinDown == 1)
 	{
 		data = STATE_STOP;
 	}
@@ -98,9 +98,11 @@ void handleState(int pinUp, int pinDown)
 		}
 		break;
 	case STATE_STOP:
-	default:
 		PORT_MOTOR &= ~(1<<PIN_MOTORDOWN);	/* deactivate down */
 		PORT_MOTOR &= ~(1<<PIN_MOTORUP);	/* deactivate up */
+		break;
+	default:
+		/* No changes to be done in the fsm */
 		break;
 	}
 	
