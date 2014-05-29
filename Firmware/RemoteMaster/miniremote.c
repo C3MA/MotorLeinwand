@@ -1,12 +1,3 @@
-/**************************************************************
-Es soll alle halbe Sekunde im Wechsel 0 bzw. 1 gesendet werden.
-Am korrespondierenden Slave soll zur Indikation jeweils die 
-LEDs an bzw. aus gehen
-Verdrahtung:	MISO(Master) --> MISO(Slave)
-				MOSI(Master) --> MOSI(Slave)
-				SCK(Master)  --> SCK(Slave)
-				PB2(Master)	 --> SS(Slave)
-**************************************************************/
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
