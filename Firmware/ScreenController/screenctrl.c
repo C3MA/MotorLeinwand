@@ -76,12 +76,12 @@ void handleState(int pinUp, int pinDown)
 		PORT_MOTOR |= (1<<PIN_MOTORUP);		/* activate up */
 
 		/* generate Blink code */
-		for(i=0; i < 3; i++)
+		for(i=0; i < 4; i++)
 		{
 			PORT_MOTOR |= (1<<PIN_DEBUG_LED);	/* activate LED */
-			_delay_ms(600);
+			_delay_ms(50);
 			PORT_MOTOR &= ~(1<<PIN_DEBUG_LED);	/* deactivate LED */
-			_delay_ms(600);
+			_delay_ms(50);
 		}
 
 		break;
