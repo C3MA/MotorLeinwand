@@ -25,6 +25,7 @@
 #define PIN_CTRL_UP	PB5
 #define PIN_CTRL_DOWN	PB4
 #define PIN_CTRL	PINB
+#define PORT_CTRL	PORTB
 
 /********** Board layout end ********/
 
@@ -49,15 +50,15 @@ void handleState(int pinUp, int pinDown)
 	unsigned char data = STATE_NONE;
 
 	/* decode pin states */
-	if (pinUp > 0 && pinDown == 0)
+	if (pinUp == 0 && pinDown > 0)
 	{
 		data = STATE_UP;
 	}
-	else if (pinUp == 0 && pinDown > 0)
+	else if (pinUp > 0 && pinDown == 0)
 	{
 		data = STATE_DOWN;
 	}
-	else if (pinUp == 1 && pinDown == 1)
+	else if (pinUp == 0 && pinDown == 0)
 	{
 		data = STATE_STOP;
 	}
@@ -100,6 +101,15 @@ void handleState(int pinUp, int pinDown)
 	case STATE_STOP:
 		PORT_MOTOR &= ~(1<<PIN_MOTORDOWN);	/* deactivate down */
 		PORT_MOTOR &= ~(1<<PIN_MOTORUP);	/* deactivate up */
+
+		/* generate Blink code */
+		for(i=0; i < 1; i++)
+		{
+			PORT_MOTOR |= (1<<PIN_DEBUG_LED);	/* activate LED */
+			_delay_ms(500);
+			PORT_MOTOR &= ~(1<<PIN_DEBUG_LED);	/* deactivate LED */
+			_delay_ms(100);
+		}
 		break;
 	default:
 		/* No changes to be done in the fsm */
@@ -126,6 +136,13 @@ ISR (TIMER1_OVF_vect)
 		PORT_MOTOR &= ~(1<<PIN_MOTORUP);	/* deactivate up */
 		lastState = STATE_STOP;			/* update the fsm */		
 
+		/* generate Blink code */
+		{
+			PORT_MOTOR |= (1<<PIN_DEBUG_LED);	/* activate LED */
+			_delay_ms(500);
+			PORT_MOTOR &= ~(1<<PIN_DEBUG_LED);	/* deactivate LED */
+			_delay_ms(100);
+		}
 		/* reset post scaler */
 		postscaler = 0;
 	}
@@ -160,6 +177,10 @@ int main (void)
 	DDCTRL_MOTOR |= (1<<PIN_MOTORDOWN);
 	DDCTRL_MOTOR |= (1<<PIN_DEBUG_LED);
 	
+	/* set pull up for inputs */
+	PORT_CTRL |= (1 << PIN_CTRL_UP);
+	PORT_CTRL |= (1 << PIN_CTRL_DOWN);
+
 	timer_init();
 	sei ();
 	
@@ -169,11 +190,6 @@ int main (void)
 			PIN_CTRL & (1 << PIN_CTRL_UP),
 			PIN_CTRL & (1 << PIN_CTRL_DOWN) );
 
-		/*FIXME remove the blink code here */
-		PORTC |= (1<<PIN_DEBUG_LED);	/* activate LED */
-		_delay_ms(50);
-		PORTC &= ~(1<<PIN_DEBUG_LED);	/* deactivate LED */
-		_delay_ms(50);
 	}
 
 	return 0;
