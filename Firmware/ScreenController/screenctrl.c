@@ -24,6 +24,7 @@
 
 #define PIN_CTRL_UP	PB5
 #define PIN_CTRL_DOWN	PB4
+#define PIN_CTRL_STOP	PB3
 #define PIN_CTRL	PINB
 #define PORT_CTRL	PORTB
 
@@ -44,7 +45,7 @@ volatile unsigned char postscaler = 0;	/**< Make the timing slower */
  * New received data on SPI is parsed here.
  * So the main logic to control the motor is here.
  */
-void handleState(int pinUp, int pinDown)
+void handleState(int pinUp, int pinDown, int pinStop)
 {
 	int i;
 	unsigned char data = STATE_NONE;
@@ -58,7 +59,7 @@ void handleState(int pinUp, int pinDown)
 	{
 		data = STATE_DOWN;
 	}
-	else if (pinUp == 0 && pinDown == 0)
+	else if (pinStop == 0)
 	{
 		data = STATE_STOP;
 	}
@@ -180,6 +181,7 @@ int main (void)
 	/* set pull up for inputs */
 	PORT_CTRL |= (1 << PIN_CTRL_UP);
 	PORT_CTRL |= (1 << PIN_CTRL_DOWN);
+	PORT_CTRL |= (1 << PIN_CTRL_STOP);
 
 	timer_init();
 	sei ();
@@ -188,7 +190,8 @@ int main (void)
 	{
 		handleState(
 			PIN_CTRL & (1 << PIN_CTRL_UP),
-			PIN_CTRL & (1 << PIN_CTRL_DOWN) );
+			PIN_CTRL & (1 << PIN_CTRL_DOWN),
+			PIN_CTRL & (1 << PIN_CTRL_STOP) );
 
 	}
 
