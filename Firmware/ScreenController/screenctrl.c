@@ -51,7 +51,11 @@ void handleState(int pinUp, int pinDown, int pinStop)
 	unsigned char data = STATE_NONE;
 
 	/* decode pin states */
-	if (pinUp == 0 && pinDown > 0)
+	if (pinStop == 0)
+	{
+		data = STATE_STOP;
+	}
+	else if (pinUp == 0 && pinDown > 0)
 	{
 		data = STATE_UP;
 	}
@@ -59,10 +63,7 @@ void handleState(int pinUp, int pinDown, int pinStop)
 	{
 		data = STATE_DOWN;
 	}
-	else if (pinStop == 0)
-	{
-		data = STATE_STOP;
-	}
+	
 
 	/* Reset the timer, if the direction was changed */
 	if (lastState != data)
