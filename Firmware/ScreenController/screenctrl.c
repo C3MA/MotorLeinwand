@@ -53,7 +53,7 @@ void handleState(int pinUp, int pinDown)
 	{
 		data = STATE_UP;
 	}
-	else if (pinUp == 0 && pinUp > 0)
+	else if (pinUp == 0 && pinDown > 0)
 	{
 		data = STATE_DOWN;
 	}
