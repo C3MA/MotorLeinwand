@@ -33,7 +33,7 @@ tmr.alarm(6, 50000, tmr.ALARM_SINGLE, function()
         m:publish("/room/screen/state","down",0,1)
     end
     -- stop both relais
-    commandScreenStop(true)
+    commandScreenStop()
     print("Timer stopped relais")
 end)
 tmr.stop(6)
@@ -128,7 +128,7 @@ m:on("message", function(conn, topic, data)
         commandScreenDown()
         m:publish("/room/trafficlight/state","down",0,1)
       elseif ( data == "stop" ) then
-        commandScreenStop()
+        commandScreenStop(true)
         m:publish("/room/trafficlight/state","stop",0,1)
       end
    end
@@ -141,7 +141,7 @@ tmr.alarm(0, 100, 1, function()
   if (setupComplete) then
     -- Logic handling buttons
     if (gpio.read(gpioBtnStop) == gpio.LOW) then
-        commandScreenStop()
+        commandScreenStop(true)
     elseif (gpio.read(gpioBtnUp) == gpio.LOW) then
         commandScreenUp()
     elseif (gpio.read(gpioBtnDown) == gpio.LOW) then
