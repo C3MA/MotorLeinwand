@@ -153,6 +153,11 @@ void timer_init (void)
  */
 int main (void)
 {
+    unsigned char btnDown = 0;
+    unsigned char btnUp   = 0;
+    unsigned char oldBtnDown = 0;
+    unsigned char oldBtnUp   = 0;
+
 	DDCTRL_MOTOR = 0;
 	
 	/* Prepare the necessary PINs as outputs */
@@ -165,15 +170,26 @@ int main (void)
 	
 	for (;;)
 	{
-		handleState(
-			PIN_CTRL & (1 << PIN_CTRL_UP),
-			PIN_CTRL & (1 << PIN_CTRL_DOWN) );
+        /* retrieve the actual button state */
+        btnUp   = PIN_CTRL & (1 << PIN_CTRL_UP);
+        btnDown = PIN_CTRL & (1 << PIN_CTRL_DOWN);
 
-		/*FIXME remove the blink code here */
+        /* only call the state machine if the state is present for */
+        if ((btnUp == oldBtnUp) && (btnDown == oldBtnDown)) 
+        {
+            handleState(btnUp,
+			        btnDown);
+        }
+
+		/* blink code to show, that we are still alive */
 		PORTC |= (1<<PIN_DEBUG_LED);	/* activate LED */
-		_delay_ms(50);
+		_delay_ms(100);
 		PORTC &= ~(1<<PIN_DEBUG_LED);	/* deactivate LED */
-		_delay_ms(50);
+		_delay_ms(100);
+
+        /* store the state for the next round */
+        oldBtnDown = btnDown;
+        oldBtnUp   = btnUp;
 	}
 
 	return 0;
