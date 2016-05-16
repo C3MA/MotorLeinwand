@@ -172,6 +172,13 @@ void timer_init (void)
  */
 int main (void)
 {
+    int btnUp      = 0;
+    int btnDown    = 0;
+    int btnStop    = 0;
+    int oldBtnUp   = 0;
+    int oldBtnDown = 0;
+    int oldBtnStop = 0;
+
 	DDCTRL_MOTOR = 0;
 	
 	/* Prepare the necessary PINs as outputs */
@@ -189,11 +196,24 @@ int main (void)
 	
 	for (;;)
 	{
-		handleState(
-			PIN_CTRL & (1 << PIN_CTRL_UP),
-			PIN_CTRL & (1 << PIN_CTRL_DOWN),
-			PIN_CTRL & (1 << PIN_CTRL_STOP) );
+        /* Retrieve the actual button states */
+	    btnUp   = PIN_CTRL & (1 << PIN_CTRL_UP);
+		btnDown = PIN_CTRL & (1 << PIN_CTRL_DOWN);
+		btnStop = PIN_CTRL & (1 << PIN_CTRL_STOP);
 
+        /* Handle the buttons if they are stable for two cycles */
+        if ((btnUp == oldBtnUp) && (btnDown == oldBtnDown) && (btnStop == oldBtnStop))
+        {
+		    handleState(btnUp, btnDown, btnStop);
+        }
+
+        /* delay main loop, in order to ignore EVM problems */
+		_delay_ms(100);
+
+        /* store the actual state of the buttons */
+        oldBtnUp = btnUp;
+        oldBtnDown = btnDown;
+        oldBtnStop = btnStop;
 	}
 
 	return 0;
