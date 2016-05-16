@@ -40,6 +40,49 @@
 volatile unsigned char lastState = 0;	/**< Last executed command */
 volatile unsigned char postscaler = 0;	/**< Make the timing slower */
 
+/**
+ *****************************************************************************
+ * @brief USART used from http://maxembedded.com/2013/09/the-usart-of-the-avr/ */
+
+// define some macros
+#define BAUD 9600                                   // define baud
+#define BAUDRATE ((F_CPU)/(BAUD*16UL)-1)            // set baud rate value for UBRR
+  
+// function to initialize UART
+void uart_init (void)
+{
+    UBRRH = (BAUDRATE>>8);                      // shift the register right by 8 bits
+    UBRRL = BAUDRATE;                           // set baud rate
+    UCSRB|= (1<<TXEN)|(1<<RXEN);                // enable receiver and transmitter
+    UCSRC|= (1<<URSEL)|(1<<UCSZ0)|(1<<UCSZ1);   // 8bit data format
+}
+
+// function to send data
+void uart_transmit (unsigned char data)
+{
+    while (!( UCSRA & (1<<UDRE)));                // wait while register is free
+    UDR = data;                                   // load data in the register
+}
+
+/** @fn  void uart_write(unsigned char *string)
+ * @brief send a string over uart
+ * @param string    text to send, expected to be closed with \0 to mark end
+ */
+void uart_write(char *string)
+{
+    unsigned char* c= (unsigned char *)string;
+    while ((*c) != '\0' )
+    {
+        uart_transmit(*c);
+        c++;
+    }
+}
+
+#define printf(txt)  uart_write(txt "\r\n\0")
+/*******************************************************************************************************/
+
+
+
 /** @fn controlStates
  * @brief Interruped for SPI
  * New received data on SPI is parsed here.
@@ -54,14 +97,17 @@ void handleState(int pinUp, int pinDown, int pinStop)
 	if (pinStop == 0)
 	{
 		data = STATE_STOP;
+        printf("Entering State Stop");
 	}
 	else if (pinUp == 0 && pinDown > 0)
 	{
 		data = STATE_UP;
+        printf("Entering State Up");
 	}
 	else if (pinUp > 0 && pinDown == 0)
 	{
 		data = STATE_DOWN;
+        printf("Entering State down");
 	}
 	
 
@@ -165,47 +211,6 @@ void timer_init (void)
 	TCCR1B = (1<<CS10) | (1<<CS12);	// 8MHz/65536/1024 = 0,11Hz --> 8,38s
 }
 
-
-/**
- *****************************************************************************
- * @brief USART used from http://maxembedded.com/2013/09/the-usart-of-the-avr/ */
-
-// define some macros
-#define BAUD 9600                                   // define baud
-#define BAUDRATE ((F_CPU)/(BAUD*16UL)-1)            // set baud rate value for UBRR
-  
-// function to initialize UART
-void uart_init (void)
-{
-    UBRRH = (BAUDRATE>>8);                      // shift the register right by 8 bits
-    UBRRL = BAUDRATE;                           // set baud rate
-    UCSRB|= (1<<TXEN)|(1<<RXEN);                // enable receiver and transmitter
-    UCSRC|= (1<<URSEL)|(1<<UCSZ0)|(1<<UCSZ1);   // 8bit data format
-}
-
-// function to send data
-void uart_transmit (unsigned char data)
-{
-    while (!( UCSRA & (1<<UDRE)));                // wait while register is free
-    UDR = data;                                   // load data in the register
-}
-
-/** @fn  void uart_write(unsigned char *string)
- * @brief send a string over uart
- * @param string    text to send, expected to be closed with \0 to mark end
- */
-void uart_write(char *string)
-{
-    unsigned char* c= (unsigned char *)string;
-    while ((*c) != '\0' )
-    {
-        uart_transmit(*c);
-        c++;
-    }
-}
-
-#define printf(txt)  uart_write(txt "\r\n\0")
-
 /** @fn int main (void)
  * @brief main entry point
  * Initializing the hardware IO, the timer and the SPI logic.
@@ -255,8 +260,6 @@ int main (void)
 		PORTC &= ~(1<<PIN_DEBUG_LED);	/* deactivate LED */
 		_delay_ms(50);
         
-
-
         /* store the actual state of the buttons */
         oldBtnUp = btnUp;
         oldBtnDown = btnDown;
