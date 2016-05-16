@@ -104,7 +104,6 @@ function startTcpServer()
 end
 
 function mqttsubscribe()
- tmr.stop(0) -- stop the reconnection
  tmr.alarm(1,50,0,function() 
         m:subscribe("/room/screen/command",0, function(conn) 
             print("subscribed") 
@@ -139,8 +138,8 @@ setupComplete=false
 
 -- Wait to be connect to the WiFi access point. 
 tmr.alarm(0, 100, 1, function()
-  -- Logic handling buttons
-  if (setupComplete == true) then
+  if (setupComplete) then
+    -- Logic handling buttons
     if (gpio.read(gpioBtnStop) == gpio.LOW) then
         commandScreenStop()
     elseif (gpio.read(gpioBtnUp) == gpio.LOW) then
@@ -148,16 +147,16 @@ tmr.alarm(0, 100, 1, function()
     elseif (gpio.read(gpioBtnDown) == gpio.LOW) then
         commandScreenDown()
     end
-  end
-
-  -- The startup script
-  if wifi.sta.status() ~= 5 then
-     print("Connecting to AP...")
   else
-     print('IP: ',wifi.sta.getip())
-     m:connect(mqttIPserver,1883,0)
-     startTcpServer()
-     setupComplete=true
+      -- The startup script
+      if wifi.sta.status() ~= 5 then
+         print("Connecting to AP...")
+      else
+         setupComplete=true
+         print('IP: ',wifi.sta.getip())
+         m:connect(mqttIPserver,1883,0)
+         startTcpServer()
+      end
   end
 end)
 
