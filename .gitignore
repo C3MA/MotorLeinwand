@@ -2,3 +2,4 @@ tmp/
 *~
 *.swp
 doc/*.png
+Firmware/wlancfg.lua
