@@ -8,13 +8,14 @@ gpioBtnDown = 7 -- GPIO13
 gpioBtnStop = 5 -- GPIO14
 gpio.mode(gpioRelayUp, gpio.OUTPUT)
 gpio.mode(gpioRelayDown, gpio.OUTPUT)
-gpio.mode(gpioBtnUp, gpio.INPUT)
-gpio.mode(gpioBtnDown, gpio.INPUT)
-gpio.mode(gpioBtnStop, gpio.INPUT)
+-- Prepare inputs with PULL-UP:
+gpio.mode(gpioBtnUp, gpio.INPUT, gpio.PULLUP)
+gpio.mode(gpioBtnDown, gpio.INPUT, gpio.PULLUP)
+gpio.mode(gpioBtnStop, gpio.INPUT, gpio.PULLUP)
 
 -- Alles aus machen
 gpio.write(gpioRelayUp, gpio.LOW)        
-gpio.write(gpioRelayDown, gpio.LOW)      
+gpio.write(gpioRelayDown, gpio.LOW)
 
 -- Possible states are: 
 STATE_UP = 1
@@ -65,7 +66,7 @@ function commandScreenStop(dontPublishSomething)
     if (screenCommandState ~= STATE_STOP) then
         screenCommandState = STATE_STOP
         print("Screen stop")
-        if (printsomething ~= nil) then
+        if (dontPublishSomething ~= nil) then
             m:publish("/room/screen/state","stop",0,1)
         end
         gpio.write(gpioRelayUp, gpio.LOW)
@@ -140,11 +141,11 @@ setupComplete=false
 tmr.alarm(0, 100, 1, function()
   -- Logic handling buttons
   if (setupComplete == true) then
-    if (gpio.read(gpioBtnStop) == gpio.HIGH) then
+    if (gpio.read(gpioBtnStop) == gpio.LOW) then
         commandScreenStop()
-    elseif (gpio.read(gpioBtnUp) == gpio.HIGH) then
+    elseif (gpio.read(gpioBtnUp) == gpio.LOW) then
         commandScreenUp()
-    elseif (gpio.read(gpioBtnDown) == gpio.HIGH) then
+    elseif (gpio.read(gpioBtnDown) == gpio.LOW) then
         commandScreenDown()
     end
   end
@@ -152,10 +153,7 @@ tmr.alarm(0, 100, 1, function()
   -- The startup script
   if wifi.sta.status() ~= 5 then
      print("Connecting to AP...")
-     gpio.write(5, ( gpio.read(5) + 1) % 2)
   else
-     -- Switch of the booting lamp
-     gpio.write(5, gpio.LOW)
      print('IP: ',wifi.sta.getip())
      m:connect(mqttIPserver,1883,0)
      startTcpServer()
