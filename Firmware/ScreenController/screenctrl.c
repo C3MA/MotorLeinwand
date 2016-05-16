@@ -208,7 +208,12 @@ int main (void)
         }
 
         /* delay main loop, in order to ignore EVM problems */
-		_delay_ms(100);
+        PORTC |= (1<<PIN_DEBUG_LED);	/* activate LED */
+		_delay_ms(50);
+		PORTC &= ~(1<<PIN_DEBUG_LED);	/* deactivate LED */
+		_delay_ms(50);
+        
+
 
         /* store the actual state of the buttons */
         oldBtnUp = btnUp;
