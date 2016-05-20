@@ -30,7 +30,7 @@ mqttPrefix="/room/screen/"
 -- timer to always stop the relay after 60 seconds
 screen100perc_time=60000
              
-tmr.alarm(6, screen100perc_time+5000, tmr.ALARM_SINGLE, function()
+tmr.alarm(6, screen100perc_time+15000, tmr.ALARM_SINGLE, function()
     if ((gpio.read(gpioRelayUp) == gpio.HIGH)  or
         (publishMovingDir == -1) ) then
         m:publish(mqttPrefix .. "state","up",0,0)
