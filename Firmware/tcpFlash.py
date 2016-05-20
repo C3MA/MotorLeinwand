@@ -62,8 +62,8 @@ def main(nodeip, luafile):
                 sys.exit(3)
             
             print "Flashing " + luafile
-            sendCmd(s, "file.remove(\"" + luafile+"\");", True)
             sendCmd(s, "w= file.writeline", True)
+            sendCmd(s, "file.remove(\"" + luafile+"\");", True)
             sendCmd(s, "file.open(\"" + luafile + "\",\"w+\");", True)
             with open(luafile) as f:
                 contents = f.readlines()
