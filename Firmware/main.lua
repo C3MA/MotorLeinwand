@@ -94,7 +94,7 @@ function commandScreenUp(force)
     if (screenCommandState ~= STATE_UP) then
         screenCommandState = STATE_UP
         if (force == nil) then
-            updatePercent()
+            publishMovingStart=0
             publish("up")
         end
         print("Screen up")
@@ -110,7 +110,7 @@ function commandScreenDown(force)
     if (screenCommandState ~= STATE_DOWN) then
        screenCommandState = STATE_DOWN
        if (force == nil) then
-            updatePercent()
+            publishMovingStart=0
             publish("down")
         end
        print("Screen down")
@@ -126,6 +126,7 @@ function commandScreenStop(dontPublishSomething, force)
     if (screenCommandState ~= STATE_STOP) then
         screenCommandState = STATE_STOP
         if (force == nil) then
+            publishMovingStart=0
             updatePercent()
         end
         print("Screen stop")
