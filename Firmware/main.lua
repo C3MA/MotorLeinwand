@@ -23,7 +23,7 @@ STATE_DOWN = 2
 STATE_STOP = 3
 screenCommandState = 0
 
-mqttPrefix="/room/screen/"
+mqttPrefix="/room/screen2/"
 
 ---------- Screen control logic
 -- timer to always stop the relay after 50 seconds
@@ -81,7 +81,7 @@ end
 mqttIPserver="10.23.42.10"
 
 -- The Mqtt logic
-m = mqtt.Client("crash", 120, "user", "pass")
+m = mqtt.Client("crash_" .. node.chipid(), 120, "user", "pass")
 
 global_c=nil
 function startTcpServer()
