@@ -1,21 +1,29 @@
 digraph Setup {
 
-nodesep=0.9
+nodesep=0.9;
+rankdir=LR;
+
 node	[shape=record style=filled];
 
-LW 	[ label="{ <up> Up | <down> Down } | <f0> Leinwand Controller | { <pin1> Pin Up | <pin2> Pin Down | <pin3> GND } " fillcolor=yellow ];
-Cont	[ label="<ip> IP | <f0> Steuerung Controller|{ <up> Button: Up|<down> Button: Down|<stop> Button: Stop }" ];
+LW 	[ label="{ <up> Up | <down> Down } | <f0> Leinwand Controller | { <pin1> Pin Up | <pin2> Pin Down | <pin3> Pin Stop } " fillcolor=yellow ];
+Cont	[ label="<f0> Taster | <up> Button: Up|<down> Button: Down|<stop> Button: Stop " fillcolor=lightblue ];
+IPcont	[ label="<ip> IP | <f0> IP Controller | { <pin1> Pin Up | <pin2> Pin Down | <pin3> Pin Stop }" ];
 Motor	[ label="Motor" shape=hexagon style=solid];
 Raum	[ label="Raumnetzwerk" shape=oval style=solid];
 
-Cont:f0->LW:pin1 [ label="Pin 1" ];
-Cont:f0->LW:pin2 [ label="Pin 2" ];
-Cont:f0->LW:pin3 [ label="GND" , dir="both" ];
+Cont:up->LW:pin1 [ label="Pin 1" ];
+Cont:down->LW:pin2 [ label="Pin 2" ];
+Cont:stop->LW:pin3 [ label="Pin 3" ];
+Cont:f0->LW:f0 [ label="GND" , dir="both" ];
+IPcont:pin1->Cont:up [ label="Pin 1" ];
+IPcont:pin2->Cont:down [ label="Pin 2" ];
+IPcont:pin3->Cont:stop [ label="Pin 3" ];
+Cont:f0->IPcont:f0 [ label="GND" , dir="both" ];
 //Cont:f0->LW:spi;
 LW:up->Motor [ label="Transistor & Relais" ];
 LW:down->Motor [ label="Transistor & Relais" ];
 
 //Cont:ip->Raum:f0 [ label="IP" ];
-Raum->Cont:ip [ label="IP", dir="both" ];
+Raum->IPcont:ip [ label="IP", dir="both" ];
 
 }
