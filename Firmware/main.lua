@@ -23,14 +23,16 @@ STATE_DOWN = 2
 STATE_STOP = 3
 screenCommandState = 0
 
+mqttPrefix="/room/screen/"
+
 ---------- Screen control logic
 -- timer to always stop the relay after 50 seconds
 tmr.alarm(6, 50000, tmr.ALARM_SINGLE, function()
     if (gpio.read(gpioRelayUp) == gpio.HIGH) then
-        m:publish("/room/screen/state","up",0,1)
+        m:publish(mqttPrefix .. "state","up",0,1)
     end
     if (gpio.read(gpioRelayDown) == gpio.HIGH) then
-        m:publish("/room/screen/state","down",0,1)
+        m:publish(mqttPrefix .. "state","down",0,1)
     end
     -- stop both relais
     commandScreenStop()
@@ -42,7 +44,7 @@ function commandScreenUp()
     if (screenCommandState ~= STATE_UP) then
         screenCommandState = STATE_UP
         print("Screen up")
-        m:publish("/room/screen/state","movingup",0,1)
+        m:publish(mqttPrefix .. "state","movingup",0,1)
         gpio.write(gpioRelayDown, gpio.LOW)   
         tmr.delay(50000) -- wait 50 ms
         gpio.write(gpioRelayUp, gpio.HIGH)
@@ -54,7 +56,7 @@ function commandScreenDown()
     if (screenCommandState ~= STATE_DOWN) then
        screenCommandState = STATE_DOWN
        print("Screen down")
-       m:publish("/room/screen/state","movingdown",0,1)
+       m:publish(mqttPrefix .. "state","movingdown",0,1)
        gpio.write(gpioRelayUp, gpio.LOW)   
        tmr.delay(50000) -- wait 50 ms
        gpio.write(gpioRelayDown, gpio.HIGH)
@@ -67,7 +69,7 @@ function commandScreenStop(dontPublishSomething)
         screenCommandState = STATE_STOP
         print("Screen stop")
         if (dontPublishSomething ~= nil) then
-            m:publish("/room/screen/state","stop",0,1)
+            m:publish(mqttPrefix .. "state","stop",0,1)
         end
         gpio.write(gpioRelayUp, gpio.LOW)
         gpio.write(gpioRelayDown, gpio.LOW)
@@ -105,9 +107,9 @@ end
 
 function mqttsubscribe()
  tmr.alarm(1,50,0,function() 
-        m:subscribe("/room/screen/command",0, function(conn) 
+        m:subscribe(mqttPrefix .. "command",0, function(conn) 
             print("subscribed") 
-            m:publish("/room/screen/ip",wifi.sta.getip(),0,0)
+            m:publish(mqttPrefix .. "ip",wifi.sta.getip(),0,0)
         end) 
     end)
 end
@@ -121,15 +123,15 @@ m:on("message", function(conn, topic, data)
    if (data == nil) then
     return
    end
-   if topic=="/room/screen/command" then
+   if topic== mqttPrefix .. "command" then
       if (data == "up") then
         commandScreenUp()
       elseif ( data == "down") then
         commandScreenDown()
-        m:publish("/room/trafficlight/state","down",0,1)
+        m:publish(mqttPrefix .. "state","down",0,1)
       elseif ( data == "stop" ) then
         commandScreenStop(true)
-        m:publish("/room/trafficlight/state","stop",0,1)
+        m:publish(mqttPrefix .. "state","stop",0,1)
       end
    end
 end)
