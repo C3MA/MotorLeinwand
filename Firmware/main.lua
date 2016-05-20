@@ -85,11 +85,13 @@ function publish(direction)
 end
 
 
-function commandScreenUp()
+function commandScreenUp(force)
     if (screenCommandState ~= STATE_UP) then
         screenCommandState = STATE_UP
-        updatePercent()
-        publish("up")
+        if (force == nil) then
+            updatePercent()
+            publish("up")
+        end
         print("Screen up")
         m:publish(mqttPrefix .. "state","movingup",0,0)
         gpio.write(gpioRelayDown, gpio.LOW)   
@@ -99,11 +101,13 @@ function commandScreenUp()
    end
 end
 
-function commandScreenDown()
+function commandScreenDown(force)
     if (screenCommandState ~= STATE_DOWN) then
        screenCommandState = STATE_DOWN
-       updatePercent()
-       publish("down")
+       if (force == nil) then
+            updatePercent()
+            publish("down")
+        end
        print("Screen down")
        m:publish(mqttPrefix .. "state","movingdown",0,0)
        gpio.write(gpioRelayUp, gpio.LOW)   
@@ -113,10 +117,12 @@ function commandScreenDown()
    end
 end
 
-function commandScreenStop(dontPublishSomething)
+function commandScreenStop(dontPublishSomething, force)
     if (screenCommandState ~= STATE_STOP) then
         screenCommandState = STATE_STOP
-        updatePercent()
+        if (force == nil) then
+            updatePercent()
+        end
         print("Screen stop")
         if (dontPublishSomething ~= nil) then
             m:publish(mqttPrefix .. "state","stop",0,0)
@@ -175,7 +181,7 @@ m:on("message", function(conn, topic, data)
    end
    if topic== mqttPrefix .. "command" then
       if (data == "up") then
-        commandScreenUp()
+        commandScreenUp() 
       elseif ( data == "down") then
         commandScreenDown()
         m:publish(mqttPrefix .. "state","down",0,1)
@@ -194,11 +200,11 @@ tmr.alarm(0, 100, 1, function()
   if (setupComplete) then
     -- Logic handling buttons
     if (gpio.read(gpioBtnStop) == gpio.LOW) then
-        commandScreenStop(true)
+        commandScreenStop(true, true) -- force to go up
     elseif (gpio.read(gpioBtnUp) == gpio.LOW) then
-        commandScreenUp()
+        commandScreenUp(true) -- force to go down
     elseif (gpio.read(gpioBtnDown) == gpio.LOW) then
-        commandScreenDown()
+        commandScreenDown(true)  -- force to stop
     end
   else
       -- The startup script
