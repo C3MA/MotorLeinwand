@@ -62,8 +62,8 @@ end
 
 function updatePercent()
     tmr.stop(0)
-    currentPercent = getPercent()
     publishMovingStart=0
+    currentPercent = getPercent()
 end
 
 function publish(direction)
