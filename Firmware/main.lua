@@ -23,11 +23,14 @@ STATE_DOWN = 2
 STATE_STOP = 3
 screenCommandState = 0
 
-mqttPrefix="/room/screen2/"
+mqttPrefix="/room/screen/"
 
 ---------- Screen control logic
+
 -- timer to always stop the relay after 50 seconds
-tmr.alarm(6, 50000, tmr.ALARM_SINGLE, function()
+screen100perc_time=50000
+             
+tmr.alarm(6, screen100perc_time+5000, tmr.ALARM_SINGLE, function()
     if (gpio.read(gpioRelayUp) == gpio.HIGH) then
         m:publish(mqttPrefix .. "state","up",0,1)
     end
@@ -37,12 +40,36 @@ tmr.alarm(6, 50000, tmr.ALARM_SINGLE, function()
     -- stop both relais
     commandScreenStop()
     print("Timer stopped relais")
+    tmr.stop(0)
 end)
 tmr.stop(6)
+
+-- Publish actual state
+publishMovingStart=tmr.now()
+publishMovingDir=nil
+
+function publish(direction)
+    if (direction == nil) then
+        return
+    end
+    publishMovingStart=tmr.now()
+    tmr.alarm(0, 1000, tmr.ALARM_AUTO, function()
+        diff=(tmr.now() - publishMovingStart) / 1000 -- convert to milliseconds
+        percent=(100 * diff) / screen100perc_time
+        m:publish(mqttPrefix .. "percent", percent,0,1)
+    end)
+    if (direction == "up") then
+        publishMovingDir="up"
+    elseif (direction == "down") then
+        publishMovingDir="down"
+    end
+end
+
 
 function commandScreenUp()
     if (screenCommandState ~= STATE_UP) then
         screenCommandState = STATE_UP
+        publish("up")
         print("Screen up")
         m:publish(mqttPrefix .. "state","movingup",0,1)
         gpio.write(gpioRelayDown, gpio.LOW)   
@@ -55,6 +82,7 @@ end
 function commandScreenDown()
     if (screenCommandState ~= STATE_DOWN) then
        screenCommandState = STATE_DOWN
+       publish("down")
        print("Screen down")
        m:publish(mqttPrefix .. "state","movingdown",0,1)
        gpio.write(gpioRelayUp, gpio.LOW)   
@@ -137,6 +165,7 @@ m:on("message", function(conn, topic, data)
 end)
 
 setupComplete=false
+
 
 -- Wait to be connect to the WiFi access point. 
 tmr.alarm(0, 100, 1, function()
