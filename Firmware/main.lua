@@ -75,7 +75,7 @@ function publish(direction)
         percent = getPercent()
         m:publish(mqttPrefix .. "percent", percent,0,0)
 
-        if ((percent < 0) or (percent > 100)) then
+        if ((percent < -100) or (percent > 100)) then
             print("Stop screen by percentage monitoring")
             m:publish(mqttPrefix .. "state","wrongPercent:" .. percent,0,0)
             -- stop both relais
