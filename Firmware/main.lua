@@ -27,8 +27,8 @@ mqttPrefix="/room/screen/"
 
 ---------- Screen control logic
 
--- timer to always stop the relay after 50 seconds
-screen100perc_time=50000
+-- timer to always stop the relay after 60 seconds
+screen100perc_time=60000
              
 tmr.alarm(6, screen100perc_time+5000, tmr.ALARM_SINGLE, function()
     if ((gpio.read(gpioRelayUp) == gpio.HIGH)  or
@@ -46,19 +46,24 @@ end)
 tmr.stop(6)
 
 -- Publish actual state
-publishMovingStart=tmr.now()
+publishMovingStart=0
 publishMovingDir=1 -- 1 for down; -1 for up
 currentPercent=0
 
 function getPercent()
-    diff=(tmr.now() - publishMovingStart) / 1000 -- convert to milliseconds
-    percentDiff=(100 * diff) / screen100perc_time
-    return currentPercent + (publishMovingDir * percentDiff)
+    if (publishMovingStart ~= 0) then
+        diff=(tmr.now() - publishMovingStart) / 1000 -- convert to milliseconds
+        percentDiff=(100 * diff) / screen100perc_time
+        return currentPercent + (publishMovingDir * percentDiff)
+    else
+        return 0
+    end
 end
 
 function updatePercent()
     tmr.stop(0)
     currentPercent = getPercent()
+    publishMovingStart=0
 end
 
 function publish(direction)
