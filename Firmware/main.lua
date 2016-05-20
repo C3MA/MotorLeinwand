@@ -31,22 +31,35 @@ mqttPrefix="/room/screen/"
 screen100perc_time=50000
              
 tmr.alarm(6, screen100perc_time+5000, tmr.ALARM_SINGLE, function()
-    if (gpio.read(gpioRelayUp) == gpio.HIGH) then
-        m:publish(mqttPrefix .. "state","up",0,1)
+    if ((gpio.read(gpioRelayUp) == gpio.HIGH)  or
+        (publishMovingDir == -1) ) then
+        m:publish(mqttPrefix .. "state","up",0,0)
     end
-    if (gpio.read(gpioRelayDown) == gpio.HIGH) then
-        m:publish(mqttPrefix .. "state","down",0,1)
+    if ((gpio.read(gpioRelayDown) == gpio.HIGH) or 
+        (publishMovingDir==1) ) then
+        m:publish(mqttPrefix .. "state","down",0,0)
     end
     -- stop both relais
     commandScreenStop()
     print("Timer stopped relais")
-    tmr.stop(0)
 end)
 tmr.stop(6)
 
 -- Publish actual state
 publishMovingStart=tmr.now()
-publishMovingDir=nil
+publishMovingDir=1 -- 1 for down; -1 for up
+currentPercent=0
+
+function getPercent()
+    diff=(tmr.now() - publishMovingStart) / 1000 -- convert to milliseconds
+    percentDiff=(100 * diff) / screen100perc_time
+    return currentPercent + (publishMovingDir * percentDiff)
+end
+
+function updatePercent()
+    tmr.stop(0)
+    currentPercent = getPercent()
+end
 
 function publish(direction)
     if (direction == nil) then
@@ -54,14 +67,20 @@ function publish(direction)
     end
     publishMovingStart=tmr.now()
     tmr.alarm(0, 1000, tmr.ALARM_AUTO, function()
-        diff=(tmr.now() - publishMovingStart) / 1000 -- convert to milliseconds
-        percent=(100 * diff) / screen100perc_time
-        m:publish(mqttPrefix .. "percent", percent,0,1)
+        percent = getPercent()
+        m:publish(mqttPrefix .. "percent", percent,0,0)
+
+        if ((percent < 0) or (percent > 100)) then
+            print("Stop screen by percentage monitoring")
+            m:publish(mqttPrefix .. "state","wrongPercent",0,0)
+            -- stop both relais
+            commandScreenStop(true)
+        end
     end)
     if (direction == "up") then
-        publishMovingDir="up"
+        publishMovingDir=-1
     elseif (direction == "down") then
-        publishMovingDir="down"
+        publishMovingDir=1
     end
 end
 
@@ -69,9 +88,10 @@ end
 function commandScreenUp()
     if (screenCommandState ~= STATE_UP) then
         screenCommandState = STATE_UP
+        updatePercent()
         publish("up")
         print("Screen up")
-        m:publish(mqttPrefix .. "state","movingup",0,1)
+        m:publish(mqttPrefix .. "state","movingup",0,0)
         gpio.write(gpioRelayDown, gpio.LOW)   
         tmr.delay(50000) -- wait 50 ms
         gpio.write(gpioRelayUp, gpio.HIGH)
@@ -82,9 +102,10 @@ end
 function commandScreenDown()
     if (screenCommandState ~= STATE_DOWN) then
        screenCommandState = STATE_DOWN
+       updatePercent()
        publish("down")
        print("Screen down")
-       m:publish(mqttPrefix .. "state","movingdown",0,1)
+       m:publish(mqttPrefix .. "state","movingdown",0,0)
        gpio.write(gpioRelayUp, gpio.LOW)   
        tmr.delay(50000) -- wait 50 ms
        gpio.write(gpioRelayDown, gpio.HIGH)
@@ -95,9 +116,10 @@ end
 function commandScreenStop(dontPublishSomething)
     if (screenCommandState ~= STATE_STOP) then
         screenCommandState = STATE_STOP
+        updatePercent()
         print("Screen stop")
         if (dontPublishSomething ~= nil) then
-            m:publish(mqttPrefix .. "state","stop",0,1)
+            m:publish(mqttPrefix .. "state","stop",0,0)
         end
         gpio.write(gpioRelayUp, gpio.LOW)
         gpio.write(gpioRelayDown, gpio.LOW)
@@ -129,7 +151,7 @@ function startTcpServer()
       node.output(nil)
       global_c=nil
     end)
-    print("Welcome to the Trafficlight")
+    print("Welcome to the Screen")
     end)
 end
 
