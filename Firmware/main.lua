@@ -1,4 +1,5 @@
 dofile("wlancfg.lua")
+dofile("settings.lua")
 print("Initialize Hardware")
 gpioRelayUp = 1   -- GPIO4
 gpioRelayDown = 2 -- GPIO5
@@ -27,9 +28,6 @@ mqttPrefix="/room/screen/"
 
 ---------- Screen control logic
 
--- timer to always stop the relay after 60 seconds
-screen100perc_time=45000
-
 function publishEndState()
     if (publishMovingDir == -1) then
         m:publish(mqttPrefix .. "state","up",0,0)
@@ -38,7 +36,7 @@ function publishEndState()
     end
 end
          
-tmr.alarm(6, screen100perc_time+15000, tmr.ALARM_SINGLE, function()
+tmr.alarm(6, setting_screen100perc_time+setting_timerdelay, tmr.ALARM_SINGLE, function()
     publishEndState()
     -- stop both relais
     commandScreenStop()
@@ -54,7 +52,7 @@ currentPercent=0
 function getPercent()
     if (publishMovingStart ~= 0) then
         diff=(tmr.now() - publishMovingStart) / 1000 -- convert to milliseconds
-        percentDiff=(100 * diff) / screen100perc_time
+        percentDiff=(100 * diff) / setting_screen100perc_time
         return currentPercent + (publishMovingDir * percentDiff)
     else
         return 0
@@ -219,6 +217,10 @@ tmr.alarm(0, 100, 1, function()
         commandScreenDown(true)  -- force to stop
     end
   else
+     if (setting_ignoreWifi ~= nil) then
+        print("Development-Mode without Wifi connection")
+        setupComplete=true
+     end
       -- The startup script
       if wifi.sta.status() ~= 5 then
          print("Connecting to AP...")
