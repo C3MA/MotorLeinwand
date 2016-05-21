@@ -29,16 +29,17 @@ mqttPrefix="/room/screen/"
 
 -- timer to always stop the relay after 60 seconds
 screen100perc_time=45000
-             
-tmr.alarm(6, screen100perc_time+15000, tmr.ALARM_SINGLE, function()
-    if ((gpio.read(gpioRelayUp) == gpio.HIGH)  or
-        (publishMovingDir == -1) ) then
+
+function publishEndState()
+    if (publishMovingDir == -1) then
         m:publish(mqttPrefix .. "state","up",0,0)
-    end
-    if ((gpio.read(gpioRelayDown) == gpio.HIGH) or 
-        (publishMovingDir==1) ) then
+    elseif (publishMovingDir==1) then
         m:publish(mqttPrefix .. "state","down",0,0)
     end
+end
+         
+tmr.alarm(6, screen100perc_time+15000, tmr.ALARM_SINGLE, function()
+    publishEndState()
     -- stop both relais
     commandScreenStop()
     print("Timer stopped relais")
@@ -75,11 +76,16 @@ function publish(direction)
         percent = getPercent()
         m:publish(mqttPrefix .. "percent", percent,0,0)
 
-        if ((percent < -100) or (percent > 100)) then
+        if ((percent < 0) or (percent > 100)) then
             print("Stop screen by percentage monitoring")
             m:publish(mqttPrefix .. "state","wrongPercent:" .. percent,0,0)
-            -- stop both relais
-            commandScreenStop(true)
+            publishEndState()
+            if (publishMovingDir == -1) then
+                currentPercent=0
+            elseif (publishMovingDir==1) then
+                currentPercent=100
+            end
+            tmr.stop(0)
         end
     end)
     if (direction == "up") then
