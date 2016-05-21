@@ -46,7 +46,7 @@ tmr.stop(6)
 
 -- Publish actual state
 publishMovingStart=0
-publishMovingDir=1 -- 1 for down; -1 for up
+publishMovingDir=0 -- 1 for down; -1 for up
 currentPercent=0
 
 function getPercent()
@@ -73,6 +73,7 @@ function publish(direction)
     tmr.alarm(1, 1000, tmr.ALARM_AUTO, function()
         percent = getPercent()
         m:publish(mqttPrefix .. "percent", percent,0,0)
+        print("Now at " .. percent .. "%")
 
         if ((percent < 0) or (percent > 100)) then
             print("Stop screen by percentage monitoring (" .. percent .. "% )")
@@ -83,6 +84,7 @@ function publish(direction)
             elseif (publishMovingDir==1) then
                 currentPercent=100
             end
+            publishMovingDir=0
             tmr.stop(1)
         end
     end)
@@ -129,9 +131,10 @@ end
 function commandScreenStop(dontPublishSomething, force)
     if (screenCommandState ~= STATE_STOP) then
         screenCommandState = STATE_STOP
-        if (force == nil) then
-            publishMovingStart=0
+        if (force == nil and publishMovingDir ~= 0) then
             updatePercent()
+            publishMovingStart=0
+            publishMovingDir=0
         end
         print("Screen stop")
         if (dontPublishSomething ~= nil) then
