@@ -112,10 +112,11 @@ function commandScreenUp(force)
         end
         print("Screen up")
         m:publish(mqttPrefix .. "state","movingup",0,0)
+        tmr.stop(6)
         gpio.write(gpioRelayDown, gpio.LOW)   
         tmr.delay(50000) -- wait 50 ms
         gpio.write(gpioRelayUp, gpio.HIGH)
-       tmr.start(6)      
+        tmr.start(6)      
    end
 end
 
@@ -135,6 +136,7 @@ function commandScreenDown(force)
         end
        print("Screen down")
        m:publish(mqttPrefix .. "state","movingdown",0,0)
+       tmr.stop(6)
        gpio.write(gpioRelayUp, gpio.LOW)   
        tmr.delay(50000) -- wait 50 ms
        gpio.write(gpioRelayDown, gpio.HIGH)
