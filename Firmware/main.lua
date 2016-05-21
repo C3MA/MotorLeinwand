@@ -60,7 +60,7 @@ function getPercent()
 end
 
 function updatePercent()
-    tmr.stop(0)
+    tmr.stop(1)
     currentPercent = getPercent()
     publishMovingStart=0
 end
@@ -70,12 +70,12 @@ function publish(direction)
         return
     end
     publishMovingStart=tmr.now()
-    tmr.alarm(0, 1000, tmr.ALARM_AUTO, function()
+    tmr.alarm(1, 1000, tmr.ALARM_AUTO, function()
         percent = getPercent()
         m:publish(mqttPrefix .. "percent", percent,0,0)
 
         if ((percent < 0) or (percent > 100)) then
-            print("Stop screen by percentage monitoring")
+            print("Stop screen by percentage monitoring (" .. percent .. "% )")
             m:publish(mqttPrefix .. "state","wrongPercent:" .. percent,0,0)
             publishEndState()
             if (publishMovingDir == -1) then
@@ -83,7 +83,7 @@ function publish(direction)
             elseif (publishMovingDir==1) then
                 currentPercent=100
             end
-            tmr.stop(0)
+            tmr.stop(1)
         end
     end)
     if (direction == "up") then
@@ -210,11 +210,11 @@ tmr.alarm(0, 100, 1, function()
   if (setupComplete) then
     -- Logic handling buttons
     if (gpio.read(gpioBtnStop) == gpio.LOW) then
-        commandScreenStop(true, true) -- force to go up
+        commandScreenStop(true)
     elseif (gpio.read(gpioBtnUp) == gpio.LOW) then
-        commandScreenUp(true) -- force to go down
+        commandScreenUp()
     elseif (gpio.read(gpioBtnDown) == gpio.LOW) then
-        commandScreenDown(true)  -- force to stop
+        commandScreenDown()
     end
   else
      if (setting_ignoreWifi ~= nil) then
