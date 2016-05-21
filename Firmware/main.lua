@@ -99,6 +99,13 @@ end
 function commandScreenUp(force)
     if (screenCommandState ~= STATE_UP) then
         screenCommandState = STATE_UP
+        -- Update global percentage variable
+       if (publishMovingDir ~= 0) then
+            updatePercent()
+            publishMovingStart=0
+            publishMovingDir=0
+       end
+        
         if (force == nil) then
             publishMovingStart=0
             publish("up")
@@ -115,6 +122,13 @@ end
 function commandScreenDown(force)
     if (screenCommandState ~= STATE_DOWN) then
        screenCommandState = STATE_DOWN
+       -- Update global percentage variable
+       if (publishMovingDir ~= 0) then
+            updatePercent()
+            publishMovingStart=0
+            publishMovingDir=0
+       end
+       
        if (force == nil) then
             publishMovingStart=0
             publish("down")
