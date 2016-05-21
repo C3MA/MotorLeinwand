@@ -3,4 +3,4 @@
 setting_screen100perc_time=45000
 setting_timerdelay=15000
 -- Mode for Development:
-setting_ignoreWifi=true
+--setting_ignoreWifi=true
