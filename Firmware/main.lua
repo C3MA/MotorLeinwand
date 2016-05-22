@@ -70,7 +70,7 @@ function publish(direction)
         return
     end
     publishMovingStart=tmr.now()
-    tmr.alarm(1, 1000, tmr.ALARM_AUTO, function()
+    tmr.alarm(1, 500, tmr.ALARM_AUTO, function()
         percent = getPercent()
         m:publish(mqttPrefix .. "percent", percent,0,0)
         print("Now at " .. percent .. "%")
@@ -112,7 +112,6 @@ function commandScreenUp(force)
         end
         print("Screen up")
         m:publish(mqttPrefix .. "state","movingup",0,0)
-        tmr.stop(6)
         gpio.write(gpioRelayDown, gpio.LOW)   
         tmr.delay(50000) -- wait 50 ms
         gpio.write(gpioRelayUp, gpio.HIGH)
@@ -136,7 +135,6 @@ function commandScreenDown(force)
         end
        print("Screen down")
        m:publish(mqttPrefix .. "state","movingdown",0,0)
-       tmr.stop(6)
        gpio.write(gpioRelayUp, gpio.LOW)   
        tmr.delay(50000) -- wait 50 ms
        gpio.write(gpioRelayDown, gpio.HIGH)
