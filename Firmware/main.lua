@@ -89,6 +89,11 @@ function publish(direction)
         else
             m:publish(mqttPrefix .. "percent", percent,0,0)
             print("Now at " .. percent .. "%")
+            -- Check if the screen reached the requested percentage
+            if ((targetPercent ~= nil) and (percent == targetPercent)) then
+                print("Reached target")
+                commandScreenStop()
+            end
         end
     end)
     if (direction == "up") then
