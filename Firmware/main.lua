@@ -73,12 +73,9 @@ function publish(direction)
     publishMovingStart=tmr.now()
     tmr.alarm(1, 500, tmr.ALARM_AUTO, function()
         percent = getPercent()
-        m:publish(mqttPrefix .. "percent", percent,0,0)
-        print("Now at " .. percent .. "%")
 
         if ((percent < 0) or (percent > 100)) then
             print("Stop screen by percentage monitoring (" .. percent .. "% )")
-            m:publish(mqttPrefix .. "state","wrongPercent:" .. percent,0,0)
             publishEndState()
             if (publishMovingDir == -1) then
                 currentPercent=0
@@ -87,6 +84,9 @@ function publish(direction)
             end
             publishMovingDir=0
             tmr.stop(1)
+        else
+            m:publish(mqttPrefix .. "percent", percent,0,0)
+            print("Now at " .. percent .. "%")
         end
     end)
     if (direction == "up") then
