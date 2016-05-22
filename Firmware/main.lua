@@ -49,6 +49,7 @@ end
 publishMovingStart=0
 publishMovingDir=0 -- 1 for down; -1 for up
 currentPercent=0
+targetPercent=nil
 
 function getPercent()
     if (publishMovingStart ~= 0) then
@@ -83,6 +84,7 @@ function publish(direction)
                 currentPercent=100
             end
             publishMovingDir=0
+            targetPercent=nil
             tmr.stop(1)
         else
             m:publish(mqttPrefix .. "percent", percent,0,0)
@@ -150,6 +152,7 @@ function commandScreenStop(dontPublishSomething, force)
             updatePercent()
             publishMovingStart=0
             publishMovingDir=0
+            targetPercent=nil
         end
         print("Screen stop")
         if (dontPublishSomething ~= nil) then
@@ -161,6 +164,22 @@ function commandScreenStop(dontPublishSomething, force)
     end
 end
 
+function commandScreenPercent(percent)
+    if (percent == nil or percent < 0 or percent > 100) then
+        return
+    end
+    if (percent == currentPercent) then
+        print("Already at " .. percent .. "% no moving needed")
+    else
+        print("Screen moving to " .. percent .. "%")
+        targetPercent=percent
+        if (currentPercent > percent) then
+            commandScreenUp()
+        elseif (currentPercent < percent) then
+            commandScreenDown()
+        end
+    end
+end
 
 mqttIPserver="10.23.42.10"
 
