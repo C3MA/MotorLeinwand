@@ -240,6 +240,8 @@ m:on("message", function(conn, topic, data)
       elseif ( data == "stop" ) then
         commandScreenStop(true)
         m:publish(mqttPrefix .. "state","stop",0,1)
+      elseif (tonumber(data) ~= nil) then
+        commandScreenPercent(tonumber(data))
       end
    end
 end)
