@@ -35,14 +35,15 @@ function publishEndState()
         m:publish(mqttPrefix .. "state","down",0,0)
     end
 end
-         
-tmr.alarm(6, setting_screen100perc_time+setting_timerdelay, tmr.ALARM_SINGLE, function()
-    publishEndState()
-    -- stop both relais
-    commandScreenStop()
-    print("Timer stopped relais")
-end)
-tmr.stop(6)
+
+function startTimeoutsupervision()
+    tmr.alarm(6, setting_screen100perc_time+setting_timerdelay, tmr.ALARM_SINGLE, function()
+        publishEndState()
+        -- stop both relais
+        commandScreenStop()
+        print("Timer stopped relais")
+    end)
+end
 
 -- Publish actual state
 publishMovingStart=0
@@ -115,7 +116,7 @@ function commandScreenUp(force)
         gpio.write(gpioRelayDown, gpio.LOW)   
         tmr.delay(50000) -- wait 50 ms
         gpio.write(gpioRelayUp, gpio.HIGH)
-        tmr.start(6)      
+        startTimeoutsupervision()
    end
 end
 
@@ -138,7 +139,7 @@ function commandScreenDown(force)
        gpio.write(gpioRelayUp, gpio.LOW)   
        tmr.delay(50000) -- wait 50 ms
        gpio.write(gpioRelayDown, gpio.HIGH)
-       tmr.start(6) 
+       startTimeoutsupervision()
    end
 end
 
