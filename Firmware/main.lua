@@ -1,3 +1,4 @@
+-- Include the Wifi Configuration and the current settings
 dofile("wlancfg.lua")
 dofile("settings.lua")
 print("Initialize Hardware")
