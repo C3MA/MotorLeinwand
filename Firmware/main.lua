@@ -44,7 +44,8 @@ function startTimeoutsupervision()
         -- stop both relais
         commandScreenStop()
         print("Timer stopped relais")
-        tmr.stop(5)
+        tmr.stop(5) -- Stop blinking
+        ws2812.write(4, string.char(0,0,0))
     end)
 end
 
@@ -90,6 +91,7 @@ function publish(direction)
             targetPercent=nil
             tmr.stop(1)
             tmr.stop(5)
+            ws2812.write(4, string.char(0,0,0))
         else
             m:publish(mqttPrefix .. "percent", percent,0,0)
             print("Now at " .. percent .. "%")
@@ -123,7 +125,7 @@ function commandScreenUp(force)
             publish("up")
         end
         -- BlinkCode
-        tmr.alarm(5, 500, tmr.ALARM_AUTO, function()
+        tmr.alarm(5, 250, tmr.ALARM_AUTO, function()
          if (color==0) then
             ws2812.write(4, string.char(128,0,0)) -- GREEN
             color=1
@@ -156,7 +158,7 @@ function commandScreenDown(force)
             publish("down")
         end
        -- BlinkCode
-       tmr.alarm(5, 500, tmr.ALARM_AUTO, function()
+       tmr.alarm(5, 250, tmr.ALARM_AUTO, function()
          if (color==0) then
             ws2812.write(4, string.char(0,128,0)) -- RED
             color=1
@@ -190,6 +192,8 @@ function commandScreenStop(dontPublishSomething, force)
         gpio.write(gpioRelayUp, gpio.LOW)
         gpio.write(gpioRelayDown, gpio.LOW)
         tmr.stop(1)
+        tmr.stop(5) -- Stop blinking
+        ws2812.write(4, string.char(0,0,0))
     end
 end
 
