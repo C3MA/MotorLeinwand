@@ -215,28 +215,6 @@ mqttIPserver="10.23.42.10"
 -- The Mqtt logic
 m = mqtt.Client("crash_" .. node.chipid(), 120, "user", "pass")
 
-global_c=nil
-function startTcpServer()
-    s=net.createServer(net.TCP, 180)
-    s:listen(2323,function(c)
-    global_c=c
-    function s_output(str)
-      if(global_c~=nil)
-         then global_c:send(str)
-      end
-    end
-    node.output(s_output, 0)
-    c:on("receive",function(c,l)
-      node.input(l)
-    end)
-    c:on("disconnection",function(c)
-      node.output(nil)
-      global_c=nil
-    end)
-    print("Welcome to the Screen")
-    end)
-end
-
 function mqttsubscribe()
  tmr.alarm(1,50,0,function() 
         m:subscribe(mqttPrefix .. "command",0, function(conn) 
@@ -303,7 +281,12 @@ tmr.alarm(0, 100, 1, function()
          print('IP: ',wifi.sta.getip())
          ws2812.write(4, string.char(0,0,0))
          m:connect(mqttIPserver,1883,0)
-         startTcpServer()
+         if (file.open("telnet.lua")) then
+            dofile("telnet.lua")
+            startTcpServer()
+         else
+            print("Cannot start telnet server")
+         end
       end
   end
 end)
