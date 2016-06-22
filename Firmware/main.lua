@@ -26,6 +26,7 @@ STATE_STOP = 3
 screenCommandState = 0
 
 mqttPrefix="/room/screen/"
+color=0
 
 ---------- Screen control logic
 
@@ -43,6 +44,7 @@ function startTimeoutsupervision()
         -- stop both relais
         commandScreenStop()
         print("Timer stopped relais")
+        tmr.stop(5)
     end)
 end
 
@@ -87,6 +89,7 @@ function publish(direction)
             publishMovingDir=0
             targetPercent=nil
             tmr.stop(1)
+            tmr.stop(5)
         else
             m:publish(mqttPrefix .. "percent", percent,0,0)
             print("Now at " .. percent .. "%")
@@ -119,6 +122,16 @@ function commandScreenUp(force)
             publishMovingStart=0
             publish("up")
         end
+        -- BlinkCode
+        tmr.alarm(5, 500, tmr.ALARM_AUTO, function()
+         if (color==0) then
+            ws2812.write(4, string.char(128,0,0)) -- GREEN
+            color=1
+         else
+            ws2812.write(4, string.char(0,0,0))
+            color=0
+         end
+        end)
         print("Screen up")
         m:publish(mqttPrefix .. "state","movingup",0,0)
         gpio.write(gpioRelayDown, gpio.LOW)   
@@ -142,6 +155,16 @@ function commandScreenDown(force)
             publishMovingStart=0
             publish("down")
         end
+       -- BlinkCode
+       tmr.alarm(5, 500, tmr.ALARM_AUTO, function()
+         if (color==0) then
+            ws2812.write(4, string.char(0,128,0)) -- RED
+            color=1
+         else
+            ws2812.write(4, string.char(0,0,0))
+            color=0
+         end
+       end)
        print("Screen down")
        m:publish(mqttPrefix .. "state","movingdown",0,0)
        gpio.write(gpioRelayUp, gpio.LOW)   
@@ -249,7 +272,6 @@ end)
 
 setupComplete=false
 
-
 -- Wait to be connect to the WiFi access point. 
 tmr.alarm(0, 100, 1, function()
   if (setupComplete) then
@@ -269,9 +291,17 @@ tmr.alarm(0, 100, 1, function()
       -- The startup script
       if wifi.sta.status() ~= 5 then
          print("Connecting to AP...")
+         if (color==0) then
+            ws2812.write(4, string.char(0,0,128)) -- BLUE
+            color=1
+         else
+            ws2812.write(4, string.char(0,0,0))
+            color=0
+         end
       else
          setupComplete=true
          print('IP: ',wifi.sta.getip())
+         ws2812.write(4, string.char(0,0,0))
          m:connect(mqttIPserver,1883,0)
          startTcpServer()
       end
