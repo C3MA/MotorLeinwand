@@ -3,7 +3,7 @@
 import argparse
 import socket
 import os.path
-import sys      #for exit
+import sys      #for exit and flush of stdout
 import time
 
 def sendRecv(s, message, answer):
@@ -70,6 +70,7 @@ def main(nodeip, luafile):
                 i=1
                 for line in contents:
                     print "\rSending " + str(i) + "/" + str(len(contents)) + " ...",
+		    sys.stdout.flush()
                     l = line.rstrip()
                     if (not sendCmd(s, "w([[" + l + "]]);")):
                         print "Cannot write line " + str(i)
