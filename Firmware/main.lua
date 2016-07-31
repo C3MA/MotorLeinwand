@@ -280,6 +280,9 @@ tmr.alarm(0, 100, 1, function()
             ws2812.write(4, string.char(0,0,0))
             color=0
          end
+	 if (tmr.now() / 1000000) > 300 then
+           node.restart()
+         end
       else
          setupComplete=true
          print('IP: ',wifi.sta.getip())
