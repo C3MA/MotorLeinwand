@@ -1,13 +1,11 @@
 -- Include the Wifi Configuration and the current settings
 dofile("wlancfg.lua")
 dofile("settings.lua")
-print("Initialize Hardware")
-gpioRelayUp = 1   -- GPIO4
-gpioRelayDown = 2 -- GPIO5
-
-gpioBtnUp   = 6 -- GPIO12
-gpioBtnDown = 7 -- GPIO13
-gpioBtnStop = 5 -- GPIO14
+local gpioRelayUp = 1   -- GPIO4
+local gpioRelayDown = 2 -- GPIO5
+local gpioBtnUp   = 6 -- GPIO12
+local gpioBtnDown = 7 -- GPIO13
+local gpioBtnStop = 5 -- GPIO14
 gpio.mode(gpioRelayUp, gpio.OUTPUT)
 gpio.mode(gpioRelayDown, gpio.OUTPUT)
 -- Prepare inputs with PULL-UP:
@@ -20,16 +18,17 @@ gpio.write(gpioRelayUp, gpio.LOW)
 gpio.write(gpioRelayDown, gpio.LOW)
 
 -- Possible states are: 
-STATE_UP = 1
-STATE_DOWN = 2
-STATE_STOP = 3
-screenCommandState = 0
+local STATE_UP = 1
+local STATE_DOWN = 2
+local STATE_STOP = 3
+local screenCommandState = 0
 
-mqttPrefix="/room/screen/"
-color=0
+local mqttPrefix="/room/screen/"
+local color=0
+local setupComplete=false
+local connected2mqtt=false
 
----------- Screen control logic
-
+-- Screen control logic
 function publishEndState()
     if (publishMovingDir == -1) then
         m:publish(mqttPrefix .. "state","up",0,0)
@@ -50,10 +49,10 @@ function startTimeoutsupervision()
 end
 
 -- Publish actual state
-publishMovingStart=0
-publishMovingDir=0 -- 1 for down; -1 for up
-currentPercent=0
-targetPercent=nil
+local publishMovingStart=0
+local publishMovingDir=0 -- 1 for down; -1 for up
+local currentPercent=0
+local targetPercent=nil
 
 function getPercent()
     if (publishMovingStart ~= 0) then
@@ -108,7 +107,6 @@ function publish(direction)
         publishMovingDir=1
     end
 end
-
 
 function commandScreenUp(force)
     if (screenCommandState ~= STATE_UP) then
@@ -214,7 +212,7 @@ function commandScreenPercent(percent)
     end
 end
 
-mqttIPserver="10.23.42.10"
+local mqttIPserver="10.23.42.10"
 
 -- The Mqtt logic
 m = mqtt.Client("crash_" .. node.chipid(), 120, "user", "pass")
@@ -224,7 +222,8 @@ function mqttsubscribe()
         m:subscribe(mqttPrefix .. "command",0, function(conn) 
             print("subscribed") 
             m:publish(mqttPrefix .. "ip",wifi.sta.getip(),0,0)
-        end) 
+        end)
+	connected2mqtt=true
     end)
 end
 m:on("connect", mqttsubscribe)
@@ -252,8 +251,6 @@ m:on("message", function(conn, topic, data)
    end
 end)
 
-setupComplete=false
-
 -- Wait to be connect to the WiFi access point. 
 tmr.alarm(0, 100, 1, function()
   if (setupComplete) then
@@ -267,7 +264,6 @@ tmr.alarm(0, 100, 1, function()
     end
   else
      if (setting_ignoreWifi ~= nil) then
-        print("Development-Mode without Wifi connection")
         setupComplete=true
      end
       -- The startup script
@@ -280,21 +276,18 @@ tmr.alarm(0, 100, 1, function()
             ws2812.write(4, string.char(0,0,0))
             color=0
          end
-	 if (tmr.now() / 1000000) > 300 then
-           node.restart()
-         end
       else
          setupComplete=true
-         print('IP: ',wifi.sta.getip())
          ws2812.write(4, string.char(0,0,0))
          m:connect(mqttIPserver,1883,0)
          if (file.open("telnet.lua")) then
             dofile("telnet.lua")
             startTcpServer()
-         else
-            print("Cannot start telnet server")
          end
+      end
+      -- Restart if there is no Server after 5 minutes
+      if (((tmr.now() / 1000000) > 300) and (connected2mqtt==false)) then
+           node.restart()
       end
   end
 end)
-
