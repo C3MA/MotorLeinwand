@@ -286,7 +286,7 @@ tmr.alarm(0, 100, 1, function()
          end
       end
       -- Restart if there is no Server after 5 minutes
-      if (((tmr.now() / 1000000) > 300) and (connected2mqtt==false)) then
+      if (((tmr.now() / 1000000) > 300) and ((connected2mqtt==false) or (wifi.sta.getip() == nil))) then
            node.restart()
       end
   end
