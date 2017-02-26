@@ -253,16 +253,17 @@ end)
 
 -- Wait to be connect to the WiFi access point. 
 tmr.alarm(0, 100, 1, function()
-  if (setupComplete) then
+  
     -- Logic handling buttons
-    if (gpio.read(gpioBtnStop) == gpio.LOW) then
+  if (gpio.read(gpioBtnStop) == gpio.LOW) then
         commandScreenStop(true)
-    elseif (gpio.read(gpioBtnUp) == gpio.LOW) then
+  elseif (gpio.read(gpioBtnUp) == gpio.LOW) then
         commandScreenUp()
-    elseif (gpio.read(gpioBtnDown) == gpio.LOW) then
+  elseif (gpio.read(gpioBtnDown) == gpio.LOW) then
         commandScreenDown()
-    end
-  else
+  end
+    
+  if (setupComplete ~= true) then
      if (setting_ignoreWifi ~= nil) then
         setupComplete=true
      end
