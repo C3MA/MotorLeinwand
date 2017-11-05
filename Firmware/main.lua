@@ -228,6 +228,7 @@ function mqttsubscribe()
 end
 m:on("connect", mqttsubscribe)
 m:on("offline", function(con) 
+    connected2mqtt=false
     print ("offline")
     node.restart()
 end)
